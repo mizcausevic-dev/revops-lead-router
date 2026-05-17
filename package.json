@@ -1,0 +1,35 @@
+{
+  "name": "revops-lead-router",
+  "version": "1.0.0",
+  "description": "TypeScript control plane for lead enrichment, CRM routing, speed-to-lead posture, and revenue-ops queue integrity.",
+  "main": "dist/src/app.js",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "build": "tsc --pretty false",
+    "test": "vitest run",
+    "demo": "tsx scripts/run_demo.ts",
+    "smoke": "tsx scripts/smoke_check.ts",
+    "verify": "npm run build && npm run test && npm run demo && npm run smoke",
+    "render:assets": "powershell -ExecutionPolicy Bypass -File .\\scripts\\render_readme_assets.ps1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mizcausevic-dev/revops-lead-router.git"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mizcausevic-dev/revops-lead-router/issues"
+  },
+  "homepage": "https://github.com/mizcausevic-dev/revops-lead-router#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.7.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  }
+}
