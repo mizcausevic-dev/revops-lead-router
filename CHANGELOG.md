@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-03
+
+### v1.0 shipped
+- rebuilt the surface onto the current dark Kinetic Gain product shell
+- added static prerender output for deployable route publishing
+- added `revops.kineticgain.com` domain rail and Hostinger deploy workflow
+- refreshed README proof assets and route packaging
+- switched the package license marker to `AGPL-3.0-or-later`
+
 ## 2023
 
 ### Early market signal
