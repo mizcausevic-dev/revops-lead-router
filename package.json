@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "build": "tsc --pretty false",
+    "prerender": "tsx scripts/prerender.ts",
     "test": "vitest run",
     "demo": "tsx scripts/run_demo.ts",
     "smoke": "tsx scripts/smoke_check.ts",
@@ -16,7 +17,7 @@
     "type": "git",
     "url": "git+https://github.com/mizcausevic-dev/revops-lead-router.git"
   },
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/mizcausevic-dev/revops-lead-router/issues"

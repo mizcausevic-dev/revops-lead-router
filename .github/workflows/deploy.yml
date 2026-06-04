@@ -1,0 +1,78 @@
+name: Deploy to revops.kineticgain.com
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "CHANGELOG.md"
+      - "LICENSE"
+      - "docs/**"
+      - "screenshots/**"
+      - "coverage/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-revops-lead-router
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    name: Build + FTP-sync to revops.kineticgain.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Verify
+        run: npm run verify
+
+      - name: Prerender
+        run: npm run prerender
+
+      - name: Verify build output
+        run: |
+          test -d site || (echo "FAIL: site/ missing" && exit 1)
+          test -f site/index.html || (echo "FAIL: site/index.html missing" && exit 1)
+
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./site/
+          server-dir: /revops/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/node_modules/**
+            **/.DS_Store
+
+      - name: Verify live
+        run: |
+          sleep 30
+          if curl -fsSL --max-time 20 "https://revops.kineticgain.com/" > /tmp/live.html; then
+            echo "OK: HTTPS live"
+          elif curl -fsSL --max-time 20 "http://revops.kineticgain.com/" > /tmp/live.html; then
+            echo "WARN: HTTP live but HTTPS not ready"
+          else
+            echo "FAIL: revops.kineticgain.com is not responding"
+            exit 1
+          fi
+          grep -qi "revops lead router" /tmp/live.html || (echo "FAIL: expected page content missing" && exit 1)

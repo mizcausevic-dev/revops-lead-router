@@ -2,6 +2,10 @@
 
 TypeScript control plane for lead enrichment, queue assignment, speed-to-lead posture, and CRM routing integrity.
 
+- Live: `http://revops.kineticgain.com/`
+- Routes: `/`, `/queue/`, `/routing-rules/`, `/bottlenecks/`, `/verification/`, `/docs/`
+- APIs: `/api/dashboard/summary`, `/api/queue`, `/api/routing-rules`, `/api/bottlenecks`, `/api/verification`, `/api/sample`
+
 ## Why this exists
 
 Revenue systems break long before pipeline dashboards admit it. The damage usually starts in the middle:
@@ -43,6 +47,7 @@ Revenue systems break long before pipeline dashboards admit it. The damage usual
 cd revops-lead-router
 npm install
 npm run dev
+npm run prerender
 ```
 
 Open:
@@ -55,6 +60,7 @@ Open:
 ## Validation
 
 - `npm run build`
+- `npm run prerender`
 - `npm run test`
 - `npm run demo`
 - `npm run smoke`

@@ -1,6 +1,20 @@
 import { bottleneckLane, queue, routingRules, scoreBands, summary, verification } from "./leadRouterService";
 
-function layout(title: string, body: string) {
+function layout(title: string, active: string, body: string) {
+  const nav = [
+    ["/", "Overview"],
+    ["/queue", "Lead queue"],
+    ["/routing-rules", "Routing rules"],
+    ["/bottlenecks", "Bottlenecks"],
+    ["/verification", "Verification"],
+    ["/docs", "Docs"]
+  ]
+    .map(
+      ([href, label]) =>
+        `<a href="${href}" class="nav-link${active === href ? " is-active" : ""}">${label}</a>`
+    )
+    .join("");
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,237 +23,372 @@ function layout(title: string, body: string) {
   <title>${title}</title>
   <style>
     :root {
-      --bg: #f4f1ea;
-      --paper: #fbfaf7;
-      --ink: #1d1d1b;
-      --muted: #635f58;
-      --border: #d8d1c6;
-      --accent: #0f766e;
-      --accent-2: #1d4ed8;
-      --alert: #b45309;
-      --danger: #b91c1c;
+      --bg: #071018;
+      --panel: #111c2b;
+      --panel-2: #0d1724;
+      --panel-3: #132235;
+      --text: #f4efe7;
+      --muted: #a9b2c0;
+      --border: rgba(113, 188, 210, 0.2);
+      --teal: #55e7c1;
+      --cyan: #3cc9f5;
+      --violet: #9a7cff;
+      --red: #ff8f9b;
+      --amber: #ffd27d;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      background: linear-gradient(180deg, #ece7de 0%, #f7f4ee 100%);
-      color: var(--ink);
-      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(154, 124, 255, 0.14), transparent 26%),
+        radial-gradient(circle at top right, rgba(60, 201, 245, 0.12), transparent 24%),
+        linear-gradient(180deg, #08111c 0%, #071018 100%);
     }
-    .shell {
-      max-width: 1360px;
-      margin: 0 auto;
-      padding: 28px;
-    }
-    .topbar, .card, .table-wrap {
-      background: rgba(251, 250, 247, 0.92);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: 0 16px 40px rgba(36, 32, 27, 0.08);
-    }
+    a { color: inherit; }
     .topbar {
-      padding: 18px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      gap: 24px;
+      padding: 22px 28px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(8, 14, 22, 0.92);
+      backdrop-filter: blur(16px);
     }
     .brand {
       display: flex;
+      align-items: center;
       gap: 14px;
-      align-items: center;
-    }
-    .badge {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font: 700 18px/1 Arial, sans-serif;
-    }
-    .eyebrow {
-      font: 600 11px/1.4 Arial, sans-serif;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 4px;
-    }
-    .brand h1 {
-      margin: 0;
-      font: 700 28px/1.1 Arial, sans-serif;
-    }
-    .brand p {
-      margin: 3px 0 0;
-      color: var(--muted);
-      font: 14px/1.5 Arial, sans-serif;
-    }
-    nav a {
+      font-weight: 700;
+      font-size: 22px;
       text-decoration: none;
-      color: var(--muted);
-      font: 600 13px/1 Arial, sans-serif;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-left: 16px;
     }
-    nav a.active, nav a:hover { color: var(--ink); }
+    .brand-mark {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--teal), var(--cyan));
+      box-shadow: 0 0 18px rgba(85, 231, 193, 0.45);
+      flex: 0 0 auto;
+    }
+    .nav {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-link {
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 10px 0;
+      border-bottom: 2px solid transparent;
+    }
+    .nav-link.is-active {
+      color: var(--text);
+      border-color: var(--cyan);
+    }
+    .shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    .hero,
+    .section,
+    .table-card {
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(17,28,43,0.94) 0%, rgba(13,23,36,0.95) 100%);
+      box-shadow: 0 18px 42px rgba(0,0,0,0.24);
+    }
     .hero {
       display: grid;
-      grid-template-columns: 1.6fr 1fr;
-      gap: 22px;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
+      gap: 26px;
+      padding: 34px;
+      margin-bottom: 24px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--teal);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(85, 231, 193, 0.18);
+      background: rgba(85, 231, 193, 0.07);
+    }
+    .hero-title {
+      margin: 0 0 16px;
+      max-width: 14ch;
+      font: 700 clamp(62px, 7vw, 108px)/0.92 Georgia, serif;
+      letter-spacing: -0.05em;
+      text-wrap: balance;
+    }
+    .hero-copy {
+      max-width: 70ch;
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.6;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
       margin-bottom: 22px;
     }
-    .card { padding: 24px; }
-    .hero h2 {
-      margin: 8px 0 10px;
-      font: 700 54px/0.98 Georgia, serif;
-      letter-spacing: -0.03em;
-    }
-    .hero p {
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      text-decoration: none;
+      font-size: 13px;
       color: var(--muted);
-      font: 18px/1.6 Arial, sans-serif;
-      max-width: 860px;
-      margin: 0 0 18px;
+      background: rgba(255,255,255,0.02);
     }
-    .stat-grid {
+    .pill.is-primary {
+      color: var(--text);
+      border-color: rgba(60, 201, 245, 0.55);
+      box-shadow: inset 0 0 0 1px rgba(60, 201, 245, 0.16);
+    }
+    .stats {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 16px;
-      margin-top: 16px;
     }
     .stat {
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      background: rgba(255,255,255,0.55);
+      min-height: 148px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(20, 33, 50, 0.85);
     }
-    .stat label {
-      display: block;
-      color: var(--muted);
-      font: 700 11px/1.4 Arial, sans-serif;
-      letter-spacing: 0.18em;
+    .stat-label {
+      color: var(--teal);
+      font-size: 11px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
-    .stat strong {
+    .stat-value {
       display: block;
-      font: 700 40px/1 Arial, sans-serif;
       margin-bottom: 8px;
+      font: 700 clamp(34px, 4vw, 54px)/1 "Segoe UI", Arial, sans-serif;
     }
-    .stat span {
-      display: block;
+    .stat-copy {
       color: var(--muted);
-      font: 13px/1.5 Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
     }
-    .right-panel h3, .section h3 {
-      margin: 0 0 12px;
-      font: 700 20px/1.2 Arial, sans-serif;
+    .hero-aside {
+      display: grid;
+      gap: 16px;
+      align-content: start;
     }
-    .list {
+    .aside-card {
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(14, 24, 37, 0.9);
+    }
+    .aside-card h3, .section h3, .table-card h3 {
+      margin: 0 0 10px;
+      font: 700 30px/1.05 Georgia, serif;
+      letter-spacing: -0.03em;
+    }
+    .aside-card p, .section-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .mini-list {
+      margin: 14px 0 0;
+      padding: 0;
+      list-style: none;
       display: grid;
       gap: 12px;
     }
-    .item {
-      border-top: 1px solid var(--border);
+    .mini-list li {
       padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
     }
-    .item:first-child {
-      border-top: 0;
+    .mini-list li:first-child {
       padding-top: 0;
+      border-top: 0;
     }
-    .item strong {
+    .mini-list strong {
       display: block;
-      font: 700 15px/1.4 Arial, sans-serif;
+      color: var(--text);
       margin-bottom: 4px;
     }
-    .item p, .item span {
-      color: var(--muted);
-      font: 13px/1.6 Arial, sans-serif;
-      margin: 0;
+    .section {
+      padding: 30px;
+      margin-bottom: 24px;
     }
-    .section-grid {
+    .grid {
       display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 22px;
-      margin-bottom: 22px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
     }
-    .table-wrap {
-      padding: 14px 18px 18px;
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .card {
+      min-height: 100%;
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(16, 28, 43, 0.92);
+    }
+    .card h4 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+    .card p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .card dl {
+      margin: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .card dt {
+      color: var(--teal);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .card dd {
+      margin: 0;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .table-card {
+      padding: 24px;
+      margin-bottom: 24px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font: 14px/1.5 Arial, sans-serif;
+      margin-top: 14px;
     }
     th, td {
       text-align: left;
       padding: 14px 10px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
       vertical-align: top;
+      font-size: 14px;
+      line-height: 1.55;
     }
     th {
       color: var(--muted);
-      font: 700 11px/1.4 Arial, sans-serif;
+      font-size: 11px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
     .tag {
-      display: inline-block;
-      padding: 4px 8px;
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 9px;
       border-radius: 999px;
-      font: 700 11px/1 Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      background: #e5f3f1;
-      color: var(--accent);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
     }
-    .tag.watch { background: #fdf1db; color: var(--alert); }
-    .tag.critical { background: #fee5e5; color: var(--danger); }
-    .footer-note {
-      margin-top: 12px;
+    .tag.watch {
+      color: #1a1510;
+      background: var(--amber);
+      border-color: rgba(255, 210, 125, 0.5);
+    }
+    .tag.critical {
+      color: #250d10;
+      background: var(--red);
+      border-color: rgba(255, 143, 155, 0.55);
+    }
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 2px 30px;
       color: var(--muted);
-      font: 13px/1.6 Arial, sans-serif;
+      font-size: 13px;
     }
-    @media (max-width: 980px) {
-      .hero, .section-grid { grid-template-columns: 1fr; }
-      .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      nav { display: none; }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .footer-links a {
+      text-decoration: none;
+      color: var(--muted);
+    }
+    @media (max-width: 1180px) {
+      .hero { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid, .grid.two { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 820px) {
+      .topbar { padding: 18px 20px; }
+      .shell { padding: 18px; }
+      .hero, .section, .table-card { padding: 22px; }
+      .hero-title { max-width: 100%; font-size: clamp(48px, 13vw, 76px); }
+      .stats { grid-template-columns: 1fr; }
+      .nav { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="shell">
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark"></span>
+      <span>Kinetic Gain</span>
+    </a>
+    <nav class="nav">${nav}</nav>
+  </header>
+  <main class="shell">
     ${body}
-  </div>
+    <footer class="footer">
+      <span>RevOps Lead Router · revops.kineticgain.com</span>
+      <div class="footer-links">
+        <a href="https://github.com/mizcausevic-dev/revops-lead-router">GitHub</a>
+        <a href="https://www.linkedin.com/in/mirzacausevic/">LinkedIn</a>
+        <a href="https://kineticgain.com/">Kinetic Gain</a>
+      </div>
+    </footer>
+  </main>
 </body>
 </html>`;
-}
-
-function topbar(active: string) {
-  const links = [
-    { href: "/", label: "Overview" },
-    { href: "/queue", label: "Lead Queue" },
-    { href: "/routing-rules", label: "Rules" },
-    { href: "/bottlenecks", label: "Bottlenecks" },
-    { href: "/verification", label: "Verification" },
-    { href: "/docs", label: "Docs" }
-  ];
-
-  return `<div class="topbar">
-    <div class="brand">
-      <div class="badge">RL</div>
-      <div>
-        <div class="eyebrow">RevOps Lead Router</div>
-        <h1>Revenue routing and speed-to-lead control plane</h1>
-        <p>Lead enrichment, CRM handoff, queue ownership, and pipeline integrity in one operator surface.</p>
-      </div>
-    </div>
-    <nav>${links
-      .map((link) => `<a class="${active === link.href ? "active" : ""}" href="${link.href}">${link.label}</a>`)
-      .join("")}</nav>
-  </div>`;
 }
 
 export function renderOverview() {
@@ -250,84 +399,98 @@ export function renderOverview() {
 
   return layout(
     "RevOps Lead Router",
-    `${topbar("/")}
-    <div class="hero">
-      <div class="card">
+    "/",
+    `<section class="hero">
+      <div>
         <div class="eyebrow">GTM Systems & Growth</div>
-        <h2>Clean routing is revenue infrastructure, not admin overhead.</h2>
-        <p>This surface turns lead enrichment, score interpretation, and ownership logic into something RevOps and sales leadership can inspect before pipeline quality erodes.</p>
-        <div class="stat-grid">
-          <div class="stat"><label>Open Leads</label><strong>${stats.leadCount}</strong><span>Modelled leads under active routing review.</span></div>
-          <div class="stat"><label>Avg Latency</label><strong>${stats.averageLatencyMinutes}m</strong><span>Median-ish speed-to-lead pressure across the current queue.</span></div>
-          <div class="stat"><label>Inside SLA</label><strong>${stats.routedWithinSla}</strong><span>Leads routed within the first-touch time budget.</span></div>
-          <div class="stat"><label>Critical Lanes</label><strong>${stats.criticalCount}</strong><span>Leads at direct risk of revenue loss or ownership drift.</span></div>
+        <h1 class="hero-title">Which leads are losing value before the right team ever sees them?</h1>
+        <p class="hero-copy">RevOps Lead Router turns enrichment gaps, routing conflicts, and SLA misses into a board-readable control plane for speed-to-lead, queue ownership, and conversion protection.</p>
+        <div class="button-row">
+          <a class="pill is-primary" href="/queue">Lead queue</a>
+          <a class="pill" href="/routing-rules">Routing rules</a>
+          <a class="pill" href="/bottlenecks">Bottlenecks</a>
+          <a class="pill" href="/verification">Verification</a>
+          <a class="pill" href="/docs">Docs</a>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Leads tracked</div><span class="stat-value">${stats.leadCount}</span><div class="stat-copy">Modelled leads under active routing review.</div></div>
+          <div class="stat"><div class="stat-label">Avg latency</div><span class="stat-value">${stats.averageLatencyMinutes}m</span><div class="stat-copy">Current queue drag before seller contact.</div></div>
+          <div class="stat"><div class="stat-label">Inside SLA</div><span class="stat-value">${stats.routedWithinSla}</span><div class="stat-copy">Leads moving within the first-touch budget.</div></div>
+          <div class="stat"><div class="stat-label">Critical lanes</div><span class="stat-value">${stats.criticalCount}</span><div class="stat-copy">Leads already at direct revenue risk.</div></div>
         </div>
       </div>
-      <div class="card right-panel">
-        <div class="eyebrow">Lead Recommendation</div>
-        <h3>${stats.recommendation}</h3>
-        <div class="list">
-          ${bottlenecks
-            .slice(0, 3)
-            .map(
-              (item) => `<div class="item"><strong>${item.name}</strong><p>${item.impact}</p><span>${item.blockedLeads} blocked leads · ${item.recommendation}</span></div>`
-            )
-            .join("")}
+      <aside class="hero-aside">
+        <div class="aside-card">
+          <div class="eyebrow">Current pressure</div>
+          <h3>${stats.recommendation}</h3>
+          <p>Routing quality is not just CRM hygiene. It is the difference between preserving expensive demand and quietly throwing it into the wrong queue.</p>
         </div>
-      </div>
-    </div>
-    <div class="section-grid">
-      <div class="table-wrap section">
-        <div class="eyebrow">Priority Queue</div>
-        <h3>Which leads need routing attention first.</h3>
-        <table>
-          <thead><tr><th>Lead</th><th>Segment</th><th>Reason</th><th>Risk</th></tr></thead>
-          <tbody>
-            ${leads
+        <div class="aside-card">
+          <div class="eyebrow">Blocked lanes</div>
+          <ul class="mini-list">
+            ${bottlenecks
+              .slice(0, 3)
               .map(
-                (lead) => `<tr><td><strong>${lead.id}</strong><br />${lead.account}</td><td>${lead.segment}</td><td>${lead.routeReason}</td><td><span class="tag ${lead.risk === "critical" ? "critical" : lead.risk === "watch" ? "watch" : ""}">${lead.risk}</span></td></tr>`
+                (item) =>
+                  `<li><strong>${item.name}</strong>${item.blockedLeads} blocked leads · ${item.recommendation}</li>`
               )
               .join("")}
-          </tbody>
-        </table>
-      </div>
-      <div class="card section">
-        <div class="eyebrow">Routing Rules</div>
-        <h3>Conversion coherence comes from explicit rule ownership.</h3>
-        <div class="list">
-          ${rules
+          </ul>
+        </div>
+        <div class="aside-card">
+          <div class="eyebrow">Rule health</div>
+          <ul class="mini-list">
+            ${rules
+              .map(
+                (rule) =>
+                  `<li><strong>${rule.name}</strong>${rule.targetQueue} · ${(rule.successRate * 100).toFixed(0)}% success · ${rule.medianLatencyMinutes}m median latency</li>`
+              )
+              .join("")}
+          </ul>
+        </div>
+      </aside>
+    </section>
+    <section class="table-card">
+      <div class="eyebrow">Priority queue</div>
+      <h3>Which leads need routing attention first</h3>
+      <p class="section-copy">These are the leads where fit, urgency, or ownership pressure make delay most expensive.</p>
+      <table>
+        <thead><tr><th>Lead</th><th>Segment</th><th>Reason</th><th>Risk</th></tr></thead>
+        <tbody>
+          ${leads
             .map(
-              (rule) => `<div class="item"><strong>${rule.name}</strong><p>${rule.trigger}</p><span>${rule.targetQueue} · ${(rule.successRate * 100).toFixed(0)}% success · ${rule.medianLatencyMinutes}m median latency</span></div>`
+              (lead) => `<tr><td><strong>${lead.id}</strong><br />${lead.account}</td><td>${lead.segment}</td><td>${lead.routeReason}</td><td><span class="tag ${lead.risk === "critical" ? "critical" : lead.risk === "watch" ? "watch" : ""}">${lead.risk}</span></td></tr>`
             )
             .join("")}
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="eyebrow">Score Bands</div>
-      <h3>Offer the right motion instead of forcing every lead into sales.</h3>
-      <div class="stat-grid">
+        </tbody>
+      </table>
+    </section>
+    <section class="section">
+      <div class="eyebrow">Score bands</div>
+      <h3>Offer the right motion instead of forcing every lead into sales</h3>
+      <p class="section-copy">Good routing protects conversion by sending each lead into the motion it has actually earned.</p>
+      <div class="grid" style="margin-top:18px;">
         ${scoreBands()
           .map(
-            (band) => `<div class="stat"><label>${band.band}</label><strong>${band.leadCount}</strong><span>${band.meaning}</span></div>`
+            (band) =>
+              `<article class="card"><div class="eyebrow">${band.band}</div><h4>${band.leadCount} leads</h4><p>${band.meaning}</p></article>`
           )
           .join("")}
       </div>
-      <div class="footer-note">Good RevOps routing is not just assignment logic. It is conversion protection, queue hygiene, and proof that paid and inbound demand are reaching the right motion fast enough.</div>
-    </div>`
+    </section>`
   );
 }
 
 export function renderQueue() {
   return layout(
     "RevOps Lead Router — Queue",
-    `${topbar("/queue")}
-    <div class="card section">
-      <div class="eyebrow">Lead Queue</div>
-      <h2 style="margin: 6px 0 10px; font: 700 46px/1 Georgia, serif;">The live routing queue should show where money gets lost.</h2>
-      <p style="color: var(--muted); font: 18px/1.6 Arial, sans-serif;">Every row below explains not just who the lead is, but why it belongs in that lane and what should happen next.</p>
-    </div>
-    <div class="table-wrap section" style="margin-top: 22px;">
+    "/queue",
+    `<section class="section">
+      <div class="eyebrow">Lead queue</div>
+      <h3>The live queue should show where money gets lost</h3>
+      <p class="section-copy">Every row explains not just who the lead is, but why it belongs in that lane and what should happen next.</p>
+    </section>
+    <section class="table-card">
       <table>
         <thead><tr><th>Lead</th><th>Source</th><th>Owner</th><th>Latency</th><th>Next Action</th><th>Risk</th></tr></thead>
         <tbody>
@@ -338,21 +501,21 @@ export function renderQueue() {
             .join("")}
         </tbody>
       </table>
-    </div>`
+    </section>`
   );
 }
 
 export function renderRoutingRules() {
   return layout(
     "RevOps Lead Router — Rules",
-    `${topbar("/routing-rules")}
-    <div class="card section">
-      <div class="eyebrow">Routing Policy</div>
-      <h2 style="margin: 6px 0 10px; font: 700 46px/1 Georgia, serif;">Routing logic should be legible to marketing, sales, and ops at the same time.</h2>
-      <p style="color: var(--muted); font: 18px/1.6 Arial, sans-serif;">This lane translates enrichment and score posture into queues, not black-box assignments.</p>
-    </div>
-    <div class="section-grid" style="margin-top: 22px;">
-      <div class="table-wrap section">
+    "/routing-rules",
+    `<section class="section">
+      <div class="eyebrow">Routing policy</div>
+      <h3>Routing logic should be legible to marketing, sales, and ops</h3>
+      <p class="section-copy">This lane translates enrichment and score posture into queues, not black-box assignments.</p>
+    </section>
+    <div class="grid two" style="margin-top:22px;">
+      <section class="table-card">
         <table>
           <thead><tr><th>Rule</th><th>Trigger</th><th>Target Queue</th><th>Median Latency</th></tr></thead>
           <tbody>
@@ -363,16 +526,16 @@ export function renderRoutingRules() {
               .join("")}
           </tbody>
         </table>
-      </div>
-      <div class="card section">
-        <div class="eyebrow">What Good Looks Like</div>
-        <h3>Rule clarity beats more headcount.</h3>
-        <div class="list">
-          <div class="item"><strong>Named-account precedence</strong><p>When routing rules conflict, the account strategy should win before geography or round-robin logic.</p></div>
-          <div class="item"><strong>Async enrichment fallback</strong><p>Do not hold a qualified lead hostage while a data provider fills in secondary fields.</p></div>
-          <div class="item"><strong>Growth lane integrity</strong><p>Self-serve or nurture paths should feel intentional, not like discarded lower-value leads.</p></div>
+      </section>
+      <section class="section">
+        <div class="eyebrow">What good looks like</div>
+        <h3>Rule clarity beats more headcount</h3>
+        <div class="grid" style="grid-template-columns:1fr; margin-top:18px;">
+          <article class="card"><h4>Named-account precedence</h4><p>When routing rules conflict, the account strategy should win before geography or round-robin logic.</p></article>
+          <article class="card"><h4>Async enrichment fallback</h4><p>Do not hold a qualified lead hostage while a data provider fills in secondary fields.</p></article>
+          <article class="card"><h4>Growth lane integrity</h4><p>Self-serve or nurture paths should feel intentional, not like discarded lower-value leads.</p></article>
         </div>
-      </div>
+      </section>
     </div>`
   );
 }
@@ -380,16 +543,16 @@ export function renderRoutingRules() {
 export function renderBottlenecks() {
   return layout(
     "RevOps Lead Router — Bottlenecks",
-    `${topbar("/bottlenecks")}
-    <div class="card section">
-      <div class="eyebrow">Revenue Friction</div>
-      <h2 style="margin: 6px 0 10px; font: 700 46px/1 Georgia, serif;">The important question is not “how many leads,” it is “where does the route break?”</h2>
-      <p style="color: var(--muted); font: 18px/1.6 Arial, sans-serif;">These bottlenecks are modeled as policy defects, data defects, or ownership defects so the fix is obvious.</p>
-    </div>
-    <div class="section-grid" style="margin-top: 22px;">
+    "/bottlenecks",
+    `<section class="section">
+      <div class="eyebrow">Revenue friction</div>
+      <h3>The question is not “how many leads,” it is “where does the route break?”</h3>
+      <p class="section-copy">These bottlenecks are modeled as policy defects, data defects, or ownership defects so the fix is obvious.</p>
+    </section>
+    <div class="grid two" style="margin-top:22px;">
       ${bottleneckLane()
         .map(
-          (item) => `<div class="card section"><div class="eyebrow">Blocked Leads: ${item.blockedLeads}</div><h3>${item.name}</h3><p style="color: var(--muted); font: 14px/1.7 Arial, sans-serif; margin-bottom: 12px;">${item.impact}</p><div class="tag ${item.blockedLeads >= 7 ? "critical" : "watch"}">${item.blockedLeads >= 7 ? "critical" : "watch"}</div><div class="footer-note">${item.recommendation}</div></div>`
+          (item) => `<article class="card"><div class="eyebrow">Blocked leads: ${item.blockedLeads}</div><h4>${item.name}</h4><p>${item.impact}</p><div class="tag ${item.blockedLeads >= 7 ? "critical" : "watch"}">${item.blockedLeads >= 7 ? "critical" : "watch"}</div><p style="margin-top:12px;">${item.recommendation}</p></article>`
         )
         .join("")}
     </div>`
@@ -399,26 +562,35 @@ export function renderBottlenecks() {
 export function renderVerification() {
   return layout(
     "RevOps Lead Router — Verification",
-    `${topbar("/verification")}
-    <div class="card section">
+    "/verification",
+    `<section class="section">
       <div class="eyebrow">Verification</div>
-      <h2 style="margin: 6px 0 10px; font: 700 46px/1 Georgia, serif;">What this repo proves about GTM systems, routing integrity, and conversion protection.</h2>
-      <div class="list">
-        ${verification().map((item) => `<div class="item"><strong>${item}</strong></div>`).join("")}
+      <h3>What this repo proves about routing integrity and conversion protection</h3>
+      <div class="grid" style="grid-template-columns:1fr; margin-top:18px;">
+        ${verification().map((item) => `<article class="card"><p>${item}</p></article>`).join("")}
       </div>
-    </div>`
+    </section>`
   );
 }
 
 export function renderDocs() {
   return layout(
     "RevOps Lead Router — Docs",
-    `${topbar("/docs")}
-    <div class="card section">
+    "/docs",
+    `<section class="section">
       <div class="eyebrow">Docs</div>
-      <h2 style="margin: 6px 0 10px; font: 700 46px/1 Georgia, serif;">A control plane for revenue routing, not just CRM decoration.</h2>
-      <p style="color: var(--muted); font: 18px/1.6 Arial, sans-serif;">This repo models the operational layer between demand capture and the first seller action: enrichment, score interpretation, queue assignment, ownership conflict handling, and SLA protection.</p>
-      <div class="footer-note">Routes: <code>/</code> · <code>/queue</code> · <code>/routing-rules</code> · <code>/bottlenecks</code> · <code>/verification</code> · <code>/docs</code></div>
-    </div>`
+      <h3>A control plane for revenue routing, not just CRM decoration</h3>
+      <p class="section-copy">This repo models the operational layer between demand capture and the first seller action: enrichment, score interpretation, queue assignment, ownership conflict handling, and SLA protection.</p>
+      <div class="grid two" style="margin-top:18px;">
+        <article class="card">
+          <h4>Routes</h4>
+          <p><code>/</code> · <code>/queue</code> · <code>/routing-rules</code> · <code>/bottlenecks</code> · <code>/verification</code> · <code>/docs</code></p>
+        </article>
+        <article class="card">
+          <h4>APIs</h4>
+          <p><code>/api/dashboard/summary</code> · <code>/api/queue</code> · <code>/api/routing-rules</code> · <code>/api/bottlenecks</code> · <code>/api/verification</code> · <code>/api/sample</code></p>
+        </article>
+      </div>
+    </section>`
   );
 }
