@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-05
+
+### v1.1 shipped
+- aligned package metadata with the public `revops.kineticgain.com` surface
+- added prerender to the local verification gate
+- made local prerender emit the same domain, robots, and sitemap artifacts used by the Pages rail
+
 ## 2026-06-03
 
 ### v1.0 shipped

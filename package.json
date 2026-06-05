@@ -1,6 +1,6 @@
 {
   "name": "revops-lead-router",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "TypeScript control plane for lead enrichment, CRM routing, speed-to-lead posture, and revenue-ops queue integrity.",
   "main": "dist/src/app.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "test": "vitest run",
     "demo": "tsx scripts/run_demo.ts",
     "smoke": "tsx scripts/smoke_check.ts",
-    "verify": "npm run build && npm run test && npm run demo && npm run smoke",
+    "verify": "npm run build && npm run test && npm run demo && npm run smoke && npm run prerender",
     "render:assets": "powershell -ExecutionPolicy Bypass -File .\\scripts\\render_readme_assets.ps1"
   },
   "repository": {
@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/mizcausevic-dev/revops-lead-router/issues"
   },
-  "homepage": "https://github.com/mizcausevic-dev/revops-lead-router#readme",
+  "homepage": "http://revops.kineticgain.com/",
   "dependencies": {
     "express": "^5.2.1"
   },

@@ -12,6 +12,7 @@ import {
 import { bottleneckLane, payload, queue, routingRules, summary, verification } from "../src/services/leadRouterService";
 
 const root = path.resolve(process.cwd(), "site");
+const domain = "revops.kineticgain.com";
 
 async function write(relativePath: string, content: string) {
   const target = path.join(root, relativePath);
@@ -45,6 +46,18 @@ async function main() {
   for (const item of json) {
     await write(item.route, `${JSON.stringify(item.data, null, 2)}\n`);
   }
+
+  await write("CNAME", `${domain}\n`);
+  await write("robots.txt", `User-agent: *\nAllow: /\nSitemap: https://${domain}/sitemap.xml\n`);
+  await write(
+    "sitemap.xml",
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${pages
+      .map((page) => {
+        const route = page.route === "index.html" ? "" : page.route.replace(/index\.html$/, "");
+        return `  <url><loc>https://${domain}/${route}</loc></url>`;
+      })
+      .join("\n")}\n</urlset>\n`
+  );
 }
 
 main().catch((error) => {
