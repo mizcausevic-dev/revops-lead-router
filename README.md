@@ -16,6 +16,14 @@ Revenue systems break long before pipeline dashboards admit it. The damage usual
 
 `revops-lead-router` models that operational layer so Growth, RevOps, and sales leadership can inspect where routing is protecting revenue and where it is quietly eroding it.
 
+## What this product does
+
+`revops-lead-router` shows where inbound leads lose value between capture and seller action: enrichment gaps, conflicting routing rules, SLA misses, owner ambiguity, and queue decisions that are too slow or too early.
+
+A SaaS go-to-market analyst can use it to inspect source quality, lead fit, routing latency, queue ownership, and conversion protection as one operating lane instead of scattered CRM exports. A SaaS value architect can use it to frame the economic case: preserved demand, faster response for high-fit leads, fewer bad handoffs, cleaner nurture separation, and fewer high-cost campaign leads wasted by broken routing logic.
+
+Technically, the repo exposes queue records, routing rules, bottleneck lanes, JSON endpoints, prerendered pages, screenshots, and verification checks. The common Kinetic Gain pattern is turning an invisible operating failure into named owners, measurable pressure, evidence artifacts, and a board-readable next action.
+
 ## Routes
 
 - `/`

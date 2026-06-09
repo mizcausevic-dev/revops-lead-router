@@ -245,6 +245,32 @@ function layout(title: string, active: string, body: string) {
       padding: 30px;
       margin-bottom: 24px;
     }
+    .depth-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .depth-card {
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background:
+        linear-gradient(180deg, rgba(19, 34, 53, 0.88), rgba(12, 23, 36, 0.9)),
+        rgba(16, 28, 43, 0.92);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 18px 42px rgba(0,0,0,0.18);
+    }
+    .depth-card h4 {
+      margin: 8px 0 8px;
+      font-size: 19px;
+      line-height: 1.25;
+    }
+    .depth-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -356,6 +382,7 @@ function layout(title: string, active: string, body: string) {
     @media (max-width: 1180px) {
       .hero { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .depth-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .grid, .grid.two { grid-template-columns: 1fr; }
     }
     @media (max-width: 820px) {
@@ -364,6 +391,7 @@ function layout(title: string, active: string, body: string) {
       .hero, .section, .table-card { padding: 22px; }
       .hero-title { max-width: 100%; font-size: clamp(48px, 13vw, 76px); }
       .stats { grid-template-columns: 1fr; }
+      .depth-grid { grid-template-columns: 1fr; }
       .nav { display: none; }
     }
   </style>
@@ -389,6 +417,48 @@ function layout(title: string, active: string, body: string) {
   </main>
 </body>
 </html>`;
+}
+
+function renderProductDepth() {
+  const cards = [
+    {
+      label: "Product depth",
+      title: "What this product does",
+      body: "Shows where inbound leads lose value between capture and seller action: enrichment gaps, conflicting rules, SLA misses, owner ambiguity, and queue decisions that are too slow or too early."
+    },
+    {
+      label: "GTM analyst lens",
+      title: "Where revenue teams use it",
+      body: "A SaaS go-to-market analyst can inspect source quality, lead fit, routing latency, queue ownership, and conversion protection as one operating lane instead of scattered CRM exports."
+    },
+    {
+      label: "Value architecture",
+      title: "Where the money leaks",
+      body: "The value case is preserved demand: faster response for high-fit leads, fewer bad handoffs, cleaner nurture separation, and fewer high-cost campaign leads wasted by broken routing logic."
+    },
+    {
+      label: "Technical proof",
+      title: "What is inspectable",
+      body: "The repo exposes queue records, routing rules, bottleneck lanes, JSON endpoints, prerendered pages, screenshots, and verification checks so the routing posture can be reviewed."
+    },
+    {
+      label: "Portfolio pattern",
+      title: "What these repos have in common",
+      body: "Each Kinetic Gain surface turns an invisible operating failure into named owners, measurable pressure, evidence artifacts, and a board-readable next action."
+    }
+  ];
+
+  return `<section class="depth-grid" aria-label="Product depth">
+    ${cards
+      .map(
+        (card) => `<article class="depth-card">
+          <div class="eyebrow">${card.label}</div>
+          <h4>${card.title}</h4>
+          <p>${card.body}</p>
+        </article>`
+      )
+      .join("")}
+  </section>`;
 }
 
 export function renderOverview() {
@@ -450,6 +520,7 @@ export function renderOverview() {
         </div>
       </aside>
     </section>
+    ${renderProductDepth()}
     <section class="table-card">
       <div class="eyebrow">Priority queue</div>
       <h3>Which leads need routing attention first</h3>
@@ -581,6 +652,7 @@ export function renderDocs() {
       <div class="eyebrow">Docs</div>
       <h3>A control plane for revenue routing, not just CRM decoration</h3>
       <p class="section-copy">This repo models the operational layer between demand capture and the first seller action: enrichment, score interpretation, queue assignment, ownership conflict handling, and SLA protection.</p>
+      ${renderProductDepth()}
       <div class="grid two" style="margin-top:18px;">
         <article class="card">
           <h4>Routes</h4>
